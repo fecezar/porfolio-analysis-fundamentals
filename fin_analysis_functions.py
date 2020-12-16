@@ -1,6 +1,9 @@
 import pandas as pd
 import numpy as np
 
+
+## content generatior
+
 def get_ffme_returns():
     """
     Load the Fama-French Dataset for the returns of the Top and Bottom Deciles by MarketCap
@@ -181,3 +184,17 @@ def var_gaussian(r, level=5, modified=False):
                 (2*z**3 - 5*z)*(s**2)/36
             )
     return -(r.mean() + z*r.std(ddof=0))
+
+
+def porftolio_returns(weights, r):
+    """Takes in arrays of weights and returns
+    Returns portfolio returns
+    """
+    return weights.T @ r
+
+def porftolio_vol(weights, cov_matrix):
+    """Takes in array of weights and the covariance matrix
+    Returns portfolio volatility
+    """
+    return (weights.T @ cov_matrix @ weights)**0.5
+    
