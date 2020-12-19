@@ -138,8 +138,9 @@ def semideviation(r):
         raise TypeError("Expected r to be a Series or DataFrame")
 
 
-def var_historic(r, level=5):
+def var_historic(r, level=1):
     """
+    Takes in a series of returns (r), and the percentage level (level)
     Returns the historic Value at Risk at a specified level
     i.e. returns the number such that "level" percent of the returns
     fall below that number, and the (100-level) percent are above
@@ -168,7 +169,7 @@ def cvar_historic(r, level=5):
 from scipy.stats import norm
 def var_gaussian(r, level=5, modified=False):
     """
-    Returns the Parametric Gauusian VaR of a Series or DataFrame
+    Returns the Parametric Gauuian VaR of a Series or DataFrame
     If "modified" is True, then the modified VaR is returned,
     using the Cornish-Fisher modification
     """
@@ -244,3 +245,43 @@ def plot_ef(n_points, er, cov):
         "Volatility": vols
     })
     return ef.plot.line(x="Volatility", y="Returns", style='.-', legend=False)
+
+
+
+    #####
+
+def msr(riskfree_rate, er, cov):
+    """
+    Returns the weights of the portfolio that gives you the maximum sharpe ratio
+    given the riskfree rate and expected returns and a covariance matrix
+    """
+    n = er.shape[0]
+    init_guess = np.repeat(1/n, n)
+    bounds = ((0.0, 1.0),) * n # an N-tuple of 2-tuples!
+    # construct the constraints
+    weights_sum_to_1 = {'type': 'eq',
+                        'fun': lambda weights: np.sum(weights) - 1
+    }
+    def neg_sharpe(weights, riskfree_rate, er, cov):
+        """
+        Returns the negative of the sharpe ratio
+        of the given portfolio
+        """
+        r = portfolio_return(weights, er)
+        vol = portfolio_vol(weights, cov)
+        return -(r - riskfree_rate)/vol
+    
+    weights = minimize(neg_sharpe, init_guess,
+                       args=(riskfree_rate, er, cov), method='SLSQP',
+                       options={'disp': False},
+                       constraints=(weights_sum_to_1,),
+                       bounds=bounds)
+    return weights.x
+
+def gmv(cov):
+    """
+    Returns the weights of the Global Minimum Volatility portfolio
+    given a covariance matrix
+    """
+    n = cov.shape[0]
+    return msr(0, np.repeat(1, n), cov)
