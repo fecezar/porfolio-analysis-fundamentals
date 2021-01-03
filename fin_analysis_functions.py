@@ -167,6 +167,8 @@ def cvar_historic(r, level=5):
 
 
 from scipy.stats import norm
+from scipy.stats import kurtosis
+from scipy.stats import skewness
 def var_gaussian(r, level=5, modified=False):
     """
     Returns the Parametric Gauuian VaR of a Series or DataFrame
